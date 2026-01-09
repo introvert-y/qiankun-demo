@@ -104,12 +104,15 @@ function initQiankun() {
 // ============================================================
 // 5. 子应用配置（带优先级标记）
 // ============================================================
+// Hash 路由匹配函数
+const hashActiveRule = (hash) => (location) => location.hash.startsWith(hash)
+
 const microApps = [
   {
     name: 'sub-vue',
     entry: getEntry('sub-vue'),  // 根据环境自动获取入口地址
     container: '#sub-container',
-    activeRule: isProduction ? '/qiankun-demo/sub-vue' : '/sub-vue',
+    activeRule: hashActiveRule('#/sub-vue'),
     props: {
       mainAppName: 'qiankun-main',
     },
@@ -119,7 +122,7 @@ const microApps = [
     name: 'sub-react',
     entry: getEntry('sub-react'),
     container: '#sub-container',
-    activeRule: isProduction ? '/qiankun-demo/sub-react' : '/sub-react',
+    activeRule: hashActiveRule('#/sub-react'),
     props: {
       mainAppName: 'qiankun-main',
     },

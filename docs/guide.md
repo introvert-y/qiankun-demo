@@ -31,13 +31,16 @@ const getEntry = (appName) => {
   }
 }
 
+// Hash 路由匹配函数
+const hashActiveRule = (hash) => (location) => location.hash.startsWith(hash)
+
 // 注册子应用
 registerMicroApps([
   {
     name: 'sub-vue',
     entry: getEntry('sub-vue'),
     container: '#sub-container',
-    activeRule: isProduction ? '/qiankun-demo/sub-vue' : '/sub-vue',
+    activeRule: hashActiveRule('#/sub-vue'),
   },
 ])
 
@@ -207,38 +210,40 @@ npm run build:sub-react  # React 子应用
 ### GitHub Pages
 
 1. **base 路径**: 必须与仓库名一致 (`/qiankun-demo/`)
-2. **客户端路由**: 使用 `history.pushState` 避免页面刷新
-3. **404.html**: 复制 index.html 处理 SPA 路由
+2. **Hash 路由**: 使用 `#/sub-vue` 格式避免服务器路由问题
+3. **404.html**: 复制 index.html 处理 SPA 路由（备用）
 4. **.nojekyll**: 禁用 Jekyll 处理
-5. **子应用独立访问重定向**: 见下方说明
 
-### 子应用直接访问处理
+### Hash 路由（推荐）
 
-**问题**：直接访问 `/qiankun-demo/sub-vue/` 会加载子应用的 `index.html`，而不是主应用。
+本项目使用 Hash 路由模式，彻底避免 GitHub Pages 静态文件服务的路由问题。
 
-**原因**：子应用目录下有独立的 `index.html`，GitHub Pages 会直接返回该文件。
+**URL 格式**：
+- 首页：`/qiankun-demo/#/`
+- Vue 子应用：`/qiankun-demo/#/sub-vue`
+- React 子应用：`/qiankun-demo/#/sub-react`
 
-**解决方案**：子应用 `index.html` 添加重定向脚本，用 sessionStorage 防止循环：
+**优势**：
+- `#` 后的内容不会发送到服务器，GitHub Pages 始终返回主应用
+- 无需处理 404.html 回退、子应用重定向等复杂逻辑
+- 直接访问 `/qiankun-demo/#/sub-vue` 可正确加载主应用和子应用
 
-```html
-<!-- sub-vue/index.html -->
-<script>
-  // 生产环境独立访问时重定向到主应用（用 sessionStorage 防止循环）
-  if (!window.__POWERED_BY_QIANKUN__ && location.hostname !== 'localhost') {
-    var key = '__redirected_' + location.pathname.replace(/\//g, '_')
-    if (!sessionStorage.getItem(key)) {
-      sessionStorage.setItem(key, '1')
-      location.replace('/qiankun-demo/sub-vue')
-    }
-  }
-</script>
+**配置方式**：
+```javascript
+// main.jsx
+const hashActiveRule = (hash) => (location) => location.hash.startsWith(hash)
+
+registerMicroApps([
+  {
+    name: 'sub-vue',
+    activeRule: hashActiveRule('#/sub-vue'),
+    // ...
+  },
+])
+
+// App.jsx 导航
+<a href="#/sub-vue">Vue 子应用</a>
 ```
-
-**工作原理**：
-- 首次直接访问 `/qiankun-demo/sub-vue/` 时，设置 sessionStorage 标记并重定向
-- 重定向后 GitHub Pages 返回 404.html（主应用），qiankun 激活子应用
-- 如果因 URL 自动补全斜杠导致再次加载子应用 index.html，sessionStorage 标记阻止再次重定向
-- qiankun 加载子应用时 `window.__POWERED_BY_QIANKUN__` 为 true，不会触发重定向
 
 ### .nojekyll 文件作用
 
@@ -266,8 +271,7 @@ add_header Access-Control-Allow-Headers 'DNT,X-Mx-ReqToken,Keep-Alive,User-Agent
 | 子应用切换后状态丢失 | unmount 保存状态，mount 恢复 |
 | Vite 开发模式样式隔离不生效 | 依赖源码级隔离（Vite ESM 绕过 qiankun） |
 | React 子应用 @react-refresh 错误 | 移除 @vitejs/plugin-react，用 esbuild |
-| 点击导航主应用消失 | 使用 history.pushState 客户端路由 |
-| 直接访问子应用 URL 不加载主应用 | 子应用 index.html 添加重定向脚本 |
+| GitHub Pages 直接访问子应用路径失败 | 使用 Hash 路由 (`#/sub-vue`) |
 
 ## 9. 性能优化
 

@@ -2,19 +2,13 @@ import { useState, useEffect } from 'react'
 import { actions } from './main.jsx'
 import './App.css'
 
-// 根据环境获取路由前缀
-const BASE_PATH = import.meta.env.PROD ? '/qiankun-demo' : ''
-
-// 客户端导航函数（不刷新页面）
-const navigateTo = (path, e) => {
-  e?.preventDefault()
-  history.pushState(null, '', path)
-  // 触发 popstate 事件，让 qiankun 响应路由变化
-  window.dispatchEvent(new PopStateEvent('popstate'))
+// Hash 路由导航函数
+const navigateTo = (hash) => {
+  window.location.hash = hash
 }
 
 function App() {
-  const [currentPath, setCurrentPath] = useState(window.location.pathname)
+  const [currentHash, setCurrentHash] = useState(window.location.hash)
 
   // 本地状态，用于触发重新渲染
   const [globalState, setGlobalState] = useState({
@@ -30,16 +24,16 @@ function App() {
       setGlobalState({ ...state })
     }, true) // true 表示立即执行一次，获取初始值
 
-    // 监听路由变化，更新当前路径
-    const handlePopState = () => {
-      setCurrentPath(window.location.pathname)
+    // 监听 hash 变化
+    const handleHashChange = () => {
+      setCurrentHash(window.location.hash)
     }
-    window.addEventListener('popstate', handlePopState)
+    window.addEventListener('hashchange', handleHashChange)
 
     // 组件卸载时取消监听
     return () => {
       actions.offGlobalStateChange()
-      window.removeEventListener('popstate', handlePopState)
+      window.removeEventListener('hashchange', handleHashChange)
     }
   }, [])
 
@@ -76,9 +70,9 @@ function App() {
       <header className="main-header">
         <h1>Qiankun 主应用</h1>
         <nav className="main-nav">
-          <a href={`${BASE_PATH}/`} onClick={(e) => navigateTo(`${BASE_PATH}/`, e)}>首页</a>
-          <a href={`${BASE_PATH}/sub-vue`} onClick={(e) => navigateTo(`${BASE_PATH}/sub-vue`, e)}>Vue 子应用</a>
-          <a href={`${BASE_PATH}/sub-react`} onClick={(e) => navigateTo(`${BASE_PATH}/sub-react`, e)}>React 子应用</a>
+          <a href="#/" onClick={() => navigateTo('#/')}>首页</a>
+          <a href="#/sub-vue" onClick={() => navigateTo('#/sub-vue')}>Vue 子应用</a>
+          <a href="#/sub-react" onClick={() => navigateTo('#/sub-react')}>React 子应用</a>
         </nav>
         <div className="user-info">
           {globalState.user.name} ({globalState.user.role})
@@ -109,7 +103,7 @@ function App() {
       {/* 主应用内容区域 */}
       <main className="main-content">
         {/* 主应用首页内容 */}
-        {(currentPath === '/' || currentPath === `${BASE_PATH}/` || currentPath === BASE_PATH) && (
+        {(currentHash === '' || currentHash === '#' || currentHash === '#/') && (
           <div className="home-content">
             <h2>欢迎使用 Qiankun 微前端示例</h2>
             <p>点击上方导航切换子应用，观察全局状态同步</p>
