@@ -210,6 +210,33 @@ npm run build:sub-react  # React 子应用
 2. **客户端路由**: 使用 `history.pushState` 避免页面刷新
 3. **404.html**: 复制 index.html 处理 SPA 路由
 4. **.nojekyll**: 禁用 Jekyll 处理
+5. **子应用独立访问重定向**: 见下方说明
+
+### 子应用直接访问处理
+
+**问题**：直接访问 `/qiankun-demo/sub-vue/` 会加载子应用的 `index.html`，而不是主应用。
+
+**原因**：子应用目录下有独立的 `index.html`，GitHub Pages 会直接返回该文件。
+
+**解决方案**：在子应用 `index.html` 中添加重定向逻辑：
+
+```html
+<!-- sub-vue/index.html 或 sub-react/index.html -->
+<head>
+  <script>
+    // 生产环境独立访问时重定向到主应用
+    if (!window.__POWERED_BY_QIANKUN__ && location.hostname !== 'localhost') {
+      location.href = '/qiankun-demo/sub-vue'  // 不带尾部斜杠
+    }
+  </script>
+</head>
+```
+
+**工作原理**：
+- `window.__POWERED_BY_QIANKUN__`：qiankun 加载子应用时会设置此变量
+- 独立访问时该变量不存在，触发重定向到主应用路由
+- 重定向 URL 不带尾部斜杠，GitHub Pages 会返回 404.html（即主应用）
+- 主应用加载后，qiankun 根据路由激活对应子应用
 
 ### .nojekyll 文件作用
 
@@ -238,6 +265,7 @@ add_header Access-Control-Allow-Headers 'DNT,X-Mx-ReqToken,Keep-Alive,User-Agent
 | Vite 开发模式样式隔离不生效 | 依赖源码级隔离（Vite ESM 绕过 qiankun） |
 | React 子应用 @react-refresh 错误 | 移除 @vitejs/plugin-react，用 esbuild |
 | 点击导航主应用消失 | 使用 history.pushState 客户端路由 |
+| 直接访问子应用 URL 不加载主应用 | 子应用 index.html 添加重定向脚本 |
 
 ## 9. 性能优化
 
