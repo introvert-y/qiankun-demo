@@ -1,0 +1,109 @@
+# GitHub Actions workflow - 部署 qiankun 微前端到 GitHub Pages
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:  # 支持手动触发
+
+# 设置权限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同时只允许一个部署
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      # ============================================================
+      # 构建主应用
+      # ============================================================
+      - name: Install main-app dependencies
+        working-directory: ./main-app
+        run: npm install
+
+      - name: Build main-app
+        working-directory: ./main-app
+        run: npm run build
+
+      # ============================================================
+      # 构建 Vue 子应用
+      # ============================================================
+      - name: Install sub-vue dependencies
+        working-directory: ./sub-vue
+        run: npm install
+
+      - name: Build sub-vue
+        working-directory: ./sub-vue
+        run: npm run build
+
+      # ============================================================
+      # 构建 React 子应用
+      # ============================================================
+      - name: Install sub-react dependencies
+        working-directory: ./sub-react
+        run: npm install
+
+      - name: Build sub-react
+        working-directory: ./sub-react
+        run: npm run build
+
+      # ============================================================
+      # 合并构建产物
+      # ============================================================
+      - name: Prepare deployment directory
+        run: |
+          mkdir -p ./dist
+          # 复制主应用
+          cp -r ./main-app/dist/* ./dist/
+          # 复制子应用到对应目录
+          mkdir -p ./dist/sub-vue
+          cp -r ./sub-vue/dist/* ./dist/sub-vue/
+          mkdir -p ./dist/sub-react
+          cp -r ./sub-react/dist/* ./dist/sub-react/
+
+      # ============================================================
+      # 处理 SPA 路由 - 复制 index.html 到 404.html
+      # ============================================================
+      - name: Create 404.html for SPA routing
+        run: |
+          cp ./dist/index.html ./dist/404.html
+          touch ./dist/.nojekyll
+
+      # ============================================================
+      # 上传构建产物
+      # ============================================================
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  # ============================================================
+  # 部署到 GitHub Pages
+  # ============================================================
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
