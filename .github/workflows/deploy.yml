@@ -84,6 +84,9 @@ jobs:
         run: |
           cp ./dist/index.html ./dist/404.html
           touch ./dist/.nojekyll
+          # 删除子应用 index.html，使直接访问子应用路径时返回 404.html（主应用）
+          rm -f ./dist/sub-vue/index.html
+          rm -f ./dist/sub-react/index.html
 
       # ============================================================
       # 上传构建产物

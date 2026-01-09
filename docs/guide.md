@@ -218,25 +218,24 @@ npm run build:sub-react  # React 子应用
 
 **原因**：子应用目录下有独立的 `index.html`，GitHub Pages 会直接返回该文件。
 
-**解决方案**：在子应用 `index.html` 中添加重定向逻辑：
+**解决方案**：部署时删除子应用的 `index.html`：
 
-```html
-<!-- sub-vue/index.html 或 sub-react/index.html -->
-<head>
-  <script>
-    // 生产环境独立访问时重定向到主应用
-    if (!window.__POWERED_BY_QIANKUN__ && location.hostname !== 'localhost') {
-      location.href = '/qiankun-demo/sub-vue'  // 不带尾部斜杠
-    }
-  </script>
-</head>
+```yaml
+# .github/workflows/deploy.yml
+- name: Create 404.html for SPA routing
+  run: |
+    cp ./dist/index.html ./dist/404.html
+    touch ./dist/.nojekyll
+    # 删除子应用 index.html
+    rm -f ./dist/sub-vue/index.html
+    rm -f ./dist/sub-react/index.html
 ```
 
 **工作原理**：
-- `window.__POWERED_BY_QIANKUN__`：qiankun 加载子应用时会设置此变量
-- 独立访问时该变量不存在，触发重定向到主应用路由
-- 重定向 URL 不带尾部斜杠，GitHub Pages 会返回 404.html（即主应用）
+- 删除子应用 `index.html` 后，访问 `/qiankun-demo/sub-vue/` 返回 404
+- GitHub Pages 的 `404.html` 是主应用的副本
 - 主应用加载后，qiankun 根据路由激活对应子应用
+- qiankun 通过 fetch 加载子应用资源（JS/CSS），不依赖 `index.html`
 
 ### .nojekyll 文件作用
 
