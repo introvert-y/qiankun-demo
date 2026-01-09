@@ -218,24 +218,27 @@ npm run build:sub-react  # React 子应用
 
 **原因**：子应用目录下有独立的 `index.html`，GitHub Pages 会直接返回该文件。
 
-**解决方案**：部署时删除子应用的 `index.html`：
+**解决方案**：子应用 `index.html` 添加重定向脚本，用 sessionStorage 防止循环：
 
-```yaml
-# .github/workflows/deploy.yml
-- name: Create 404.html for SPA routing
-  run: |
-    cp ./dist/index.html ./dist/404.html
-    touch ./dist/.nojekyll
-    # 删除子应用 index.html
-    rm -f ./dist/sub-vue/index.html
-    rm -f ./dist/sub-react/index.html
+```html
+<!-- sub-vue/index.html -->
+<script>
+  // 生产环境独立访问时重定向到主应用（用 sessionStorage 防止循环）
+  if (!window.__POWERED_BY_QIANKUN__ && location.hostname !== 'localhost') {
+    var key = '__redirected_' + location.pathname.replace(/\//g, '_')
+    if (!sessionStorage.getItem(key)) {
+      sessionStorage.setItem(key, '1')
+      location.replace('/qiankun-demo/sub-vue')
+    }
+  }
+</script>
 ```
 
 **工作原理**：
-- 删除子应用 `index.html` 后，访问 `/qiankun-demo/sub-vue/` 返回 404
-- GitHub Pages 的 `404.html` 是主应用的副本
-- 主应用加载后，qiankun 根据路由激活对应子应用
-- qiankun 通过 fetch 加载子应用资源（JS/CSS），不依赖 `index.html`
+- 首次直接访问 `/qiankun-demo/sub-vue/` 时，设置 sessionStorage 标记并重定向
+- 重定向后 GitHub Pages 返回 404.html（主应用），qiankun 激活子应用
+- 如果因 URL 自动补全斜杠导致再次加载子应用 index.html，sessionStorage 标记阻止再次重定向
+- qiankun 加载子应用时 `window.__POWERED_BY_QIANKUN__` 为 true，不会触发重定向
 
 ### .nojekyll 文件作用
 
