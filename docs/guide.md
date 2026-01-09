@@ -1,6 +1,46 @@
 # Qiankun 微前端详细指南
 
-## 1. 架构概览
+## 1. 微前端核心概念
+
+### 什么是微前端
+
+```
+传统单体应用的问题：
+├── 代码量大，构建慢
+├── 技术栈升级困难
+├── 团队协作冲突多
+└── 无法独立部署
+
+微前端的解决思路：
+├── 拆分成多个独立子应用
+├── 子应用独立开发、部署
+├── 主应用负责调度、集成
+└── 运行时动态加载
+```
+
+### 核心概念
+
+| 概念 | 说明 |
+|------|------|
+| 主应用（基座） | 负责子应用的注册、调度、公共功能 |
+| 子应用 | 独立的前端应用，可以使用不同技术栈 |
+| 应用加载 | 如何获取子应用的资源（HTML/JS/CSS） |
+| 应用隔离 | JS 沙箱、CSS 隔离，防止应用间冲突 |
+| 应用通信 | 主子应用、子应用之间如何传递数据 |
+
+### qiankun 与 single-spa 的关系
+
+```
+qiankun = single-spa + 以下增强
+    │
+    ├── import-html-entry（HTML Entry 加载）
+    ├── JS 沙箱（ProxySandbox / LegacySandbox）
+    ├── CSS 隔离（Shadow DOM / Scoped CSS）
+    ├── 预加载（prefetch）
+    └── 全局状态管理（initGlobalState）
+```
+
+## 2. 架构概览
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -82,14 +122,28 @@ export default defineConfig({
 
 ### 子应用生命周期
 
+每个子应用必须导出以下生命周期函数（single-spa 核心约定）：
+
 ```javascript
 // sub-vue/src/main.js
 renderWithQiankun({
-  bootstrap() { /* 初始化 */ },
-  mount(props) { /* 挂载，接收 props */ },
-  unmount() { /* 卸载，清理资源 */ },
+  bootstrap() { /* 初始化，只执行一次 */ },
+  mount(props) { /* 挂载，每次激活都执行 */ },
+  unmount() { /* 卸载，每次离开都执行 */ },
   update(props) { /* 更新 */ },
 })
+```
+
+### 应用状态流转
+
+```
+NOT_LOADED → LOADING_SOURCE_CODE → NOT_BOOTSTRAPPED
+                                         ↓
+                                    BOOTSTRAPPING
+                                         ↓
+              UNMOUNTING ← MOUNTED ← MOUNTING ← NOT_MOUNTED
+                   ↓          ↑
+                   └──────────┘
 ```
 
 ## 3. 主子应用通信
@@ -172,6 +226,27 @@ function App({ qiankunProps = {} }) {
 | LegacySandbox | 单 Proxy | 不支持 |
 | ProxySandbox | 多 Proxy | 支持 (默认) |
 
+**ProxySandbox 原理（推荐）**：
+```javascript
+// 每个子应用有独立的 fakeWindow
+class ProxySandbox {
+  constructor() {
+    const fakeWindow = {};
+    this.proxy = new Proxy(fakeWindow, {
+      get(target, key) {
+        // 优先从 fakeWindow 取，否则从真实 window 取
+        return key in target ? target[key] : window[key];
+      },
+      set(target, key, value) {
+        // 所有修改都写入 fakeWindow，不污染真实 window
+        target[key] = value;
+        return true;
+      },
+    });
+  }
+}
+```
+
 ### CSS 隔离
 
 | 方案 | 配置 | 说明 |
@@ -180,6 +255,15 @@ function App({ qiankunProps = {} }) {
 | strictStyleIsolation | `sandbox: { strictStyleIsolation: true }` | Shadow DOM |
 | CSS Modules | `.module.css` | 源码级隔离 |
 | Vue scoped | `<style scoped>` | 源码级隔离 |
+
+**Scoped CSS 原理**：
+```css
+/* 原始 */
+.btn { color: red; }
+
+/* 转换后 */
+div[data-qiankun="sub-vue"] .btn { color: red; }
+```
 
 ## 5. 常用命令
 
@@ -278,3 +362,67 @@ add_header Access-Control-Allow-Headers 'DNT,X-Mx-ReqToken,Keep-Alive,User-Agent
 - **预加载**: `prefetch: true` 空闲时预加载
 - **按需加载**: `prefetch: ['critical-app']` 只预加载关键应用
 - **优先级**: 使用 `criticalAppNames` / `minorAppNames` 分级加载
+
+## 10. qiankun 核心原理
+
+### HTML Entry（import-html-entry）
+
+```
+传统 single-spa：需要手动指定 JS 入口
+qiankun：直接用 HTML 作为入口
+
+工作流程：
+1. fetch 子应用 HTML
+2. 解析 HTML，提取 <script>、<style>、<link>
+3. 执行 JS，获取生命周期函数
+4. 将 HTML 模板插入容器
+```
+
+### 子应用加载流程
+
+```javascript
+// qiankun 内部简化逻辑
+const html = await fetch(entry).then(res => res.text());
+const { template, scripts, styles } = parseHTML(html);
+
+// 加载样式
+styles.forEach(loadStyle);
+
+// 执行脚本，获取生命周期
+const lifecycles = await execScripts(scripts);
+```
+
+## 11. 常见误区
+
+| 误区 | 正确认识 |
+|------|----------|
+| 必须精通 single-spa | 了解核心概念即可，qiankun 已封装 |
+| 微前端能解决所有问题 | 有额外复杂性，简单项目不需要 |
+| 子应用必须用不同框架 | 相同框架也可以，主要是解耦 |
+| CSS 隔离能完美解决样式冲突 | 仍需规范，特别是全局样式 |
+
+## 12. 学习资源
+
+### 官方资源
+
+| 资源 | 链接 |
+|------|------|
+| qiankun 官方文档 | https://qiankun.umijs.org/zh |
+| single-spa 文档 | https://single-spa.js.org/ |
+| import-html-entry | https://github.com/kuitos/import-html-entry |
+
+### 源码阅读顺序
+
+```
+1. single-spa 核心（约 500 行）
+   └── src/applications/app.js
+
+2. import-html-entry
+   └── src/index.js
+
+3. qiankun 核心
+   ├── src/apis.ts          # 注册、启动 API
+   ├── src/sandbox/         # 沙箱实现
+   │   └── proxySandbox.ts
+   └── src/loader.ts        # 应用加载
+```
