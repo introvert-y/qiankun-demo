@@ -59,7 +59,7 @@ npm run preview:prod    # 构建并预览，访问 http://localhost:4000/qiankun
 git add . && git commit -m "deploy" && git push
 ```
 
-访问：`https://<username>.github.io/qiankun-demo/`
+访问：https://introvert-y.github.io/qiankun-demo/
 
 ## 文档
 
