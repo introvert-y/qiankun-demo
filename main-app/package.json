@@ -1,0 +1,37 @@
+{
+  "name": "main-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+
+    "build:all": "npm run build && npm run build:sub-vue && npm run build:sub-react && npm run merge:dist",
+    "build:sub-vue": "cd ../sub-vue && npm run build",
+    "build:sub-react": "cd ../sub-react && npm run build",
+    "merge:dist": "node scripts/merge-dist.js",
+    "preview:prod": "npm run build:all && serve preview -l 4000",
+
+    "install:all": "npm install && cd ../sub-vue && npm install && cd ../sub-react && npm install"
+  },
+  "dependencies": {
+    "qiankun": "^2.10.16",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "serve": "^14.2.0",
+    "@eslint/js": "^9.39.1",
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "vite": "^7.2.4"
+  }
+}

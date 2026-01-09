@@ -1,0 +1,138 @@
+/* 主应用布局 */
+.main-app {
+  min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* 深色主题 */
+.main-app.dark {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.main-app.dark .home-content h2,
+.main-app.dark .home-content p {
+  color: #fff;
+}
+
+.main-app.dark .global-state-panel {
+  background: #2a2a2a;
+  border-color: #444;
+}
+
+/* 头部导航 */
+.main-header {
+  background: #1890ff;
+  color: white;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+}
+
+.main-header h1 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.main-nav {
+  display: flex;
+  gap: 20px;
+}
+
+.main-nav a {
+  color: white;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background 0.3s;
+}
+
+.main-nav a:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.user-info {
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6px 12px;
+  border-radius: 4px;
+}
+
+/* 全局状态控制面板 */
+.global-state-panel {
+  margin: 16px 24px;
+  padding: 16px;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.global-state-panel h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #1890ff;
+}
+
+.state-display {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.state-display span {
+  background: #fff;
+  padding: 4px 12px;
+  border-radius: 4px;
+  border: 1px solid #eee;
+}
+
+.main-app.dark .state-display span {
+  background: #333;
+  border-color: #555;
+}
+
+.state-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.state-actions button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  background: #1890ff;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.3s;
+}
+
+.state-actions button:hover {
+  background: #40a9ff;
+}
+
+/* 内容区域 */
+.main-content {
+  padding: 24px;
+}
+
+.home-content {
+  text-align: center;
+  padding: 60px 0;
+}
+
+.home-content h2 {
+  color: #333;
+}
+
+.home-content p {
+  color: #666;
+}
+
+/* 子应用容器 */
+#sub-container {
+  min-height: 400px;
+}
