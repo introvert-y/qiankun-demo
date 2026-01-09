@@ -1,0 +1,143 @@
+/* React 子应用样式 - CSS Modules 自动生成唯一类名 */
+.app {
+  padding: 20px;
+  background: linear-gradient(135deg, #61dafb 0%, #282c34 100%);
+  border-radius: 8px;
+  color: white;
+  min-height: 300px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.logo {
+  height: 60px;
+  animation: logoSpin infinite 20s linear;
+}
+
+@keyframes logoSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.content {
+  text-align: center;
+}
+
+/* 沙箱测试框 */
+.sandboxTest {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px dashed rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 20px 0;
+}
+
+.sandboxTest h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+}
+
+.testInfo {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-family: monospace;
+  margin-bottom: 12px;
+}
+
+.testActions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.testActions button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  background: #ffcc00;
+  color: #333;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.testTip {
+  font-size: 12px;
+  opacity: 0.8;
+  margin: 8px 0 0 0;
+}
+
+/* 全局状态框 */
+.stateBox {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 20px 0;
+}
+
+.stateBox h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+}
+
+.stateInfo {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.stateInfo span {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.stateActions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stateActions button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  background: white;
+  color: #61dafb;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: transform 0.2s;
+}
+
+.stateActions button:hover {
+  transform: scale(1.05);
+}
+
+.standaloneTip {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 20px 0;
+}
+
+.techStack {
+  margin-top: 24px;
+  opacity: 0.8;
+  font-size: 14px;
+}
